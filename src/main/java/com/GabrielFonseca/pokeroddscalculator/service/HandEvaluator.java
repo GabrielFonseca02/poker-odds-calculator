@@ -1,6 +1,7 @@
 package com.GabrielFonseca.pokeroddscalculator.service;
 
 import com.GabrielFonseca.pokeroddscalculator.model.*;
+import util.CombinationGenerator;
 
 
 import java.util.ArrayList;
@@ -11,9 +12,41 @@ import java.util.stream.Collectors;
 
 public class HandEvaluator {
 
+    public static HandResult evaluate(Hand hand) {
 
+        if (hand.size() < 5 || hand.size() > 7) {
+            throw new IllegalArgumentException(
+                    "Hand must contain between 5 and 7 cards."
+            );
+        }
 
-    private HandResult evaluateFiveCards(List <Card> cards) {
+        if (hand.size() == 5) {
+            return evaluateFiveCards(hand.getCards());
+        }
+
+        List<List<Card>> combinations = CombinationGenerator.generate(hand.getCards());
+
+        HandResult bestResult = null;
+
+        for (List<Card> combination : combinations) {
+
+            HandResult currentResult =
+                    evaluateFiveCards(combination);
+
+            if (bestResult == null) {
+                bestResult = currentResult;
+            }
+
+            else if ( compare(currentResult,bestResult)>0)
+            {
+                bestResult = currentResult;
+            }
+        }
+
+        return bestResult;
+    }
+
+    private static HandResult evaluateFiveCards(List<Card> cards) {
 
 
         if (cards.size() < 5 || cards.size() > 7) {
@@ -123,6 +156,41 @@ public class HandEvaluator {
 
         return new HandResult(HandRank.HighCard, values);
     }
+
+    public static int compare(HandResult a, HandResult b) {
+
+        // 1. comparar força da mão
+        int rankCompare =
+                Integer.compare(
+                        a.getHandRank().getStrength(),
+                        b.getHandRank().getStrength()
+                );
+
+        if (rankCompare != 0) {
+            return rankCompare;
+        }
+
+        // 2. comparar rankingValues
+        List<Integer> aValues = a.getRankingValues();
+        List<Integer> bValues = b.getRankingValues();
+
+        for (int i = 0; i < aValues.size(); i++) {
+
+            int valueCompare =
+                    Integer.compare(
+                            aValues.get(i),
+                            bValues.get(i)
+                    );
+
+            if (valueCompare != 0) {
+                return valueCompare;
+            }
+        }
+
+        // 3. empate total
+        return 0;
+    }
+
 
 }
 

@@ -28,4 +28,8 @@ public class Hand {
     public void clear() {
         cards.clear();
     }
+
+    public List<Card> getCards() {
+        return cards;
+    }
 }

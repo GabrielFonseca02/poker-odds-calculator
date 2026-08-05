@@ -9,8 +9,8 @@ public enum HandRank {
     Straight(5),
     Flush(6),
     FullHouse(7),
-    StraightFlush(8),
-    FourOfAKind(9),
+    FourOfAKind(8),
+    StraightFlush(9),
     RoyalFlush(10);
 
     private final int strength;

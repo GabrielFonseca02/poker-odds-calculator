@@ -2,21 +2,42 @@ package util;
 import com.GabrielFonseca.pokeroddscalculator.model.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-/*
-        objetivo é avaliar até 21 mãos da mesa
-        C(7,5) = 21 combinações
-     */
 
 public class CombinationGenerator {
 
+    public static List<List<Card>> generate(List<Card> cards) {
 
-    /*public static List<List<Card>> generationCombinations(List<Card> cards) {
+        List<List<Card>> combinations = new ArrayList<>();
 
-    }*/
+        generateCombinations(cards, 0, new ArrayList<>(), combinations);
+        return combinations;
+    }
 
+    private static void generateCombinations(List<Card> cards,
+                                             int start,
+                                             List<Card> current,
+                                             List<List<Card>> combinations){
+
+
+        if (current.size() == 5) {
+            combinations.add(new ArrayList<>(current));
+            return;
+        }
+
+        for (int i = start; i < cards.size(); i++) {
+
+            current.add(cards.get(i));
+
+            generateCombinations(
+                    cards,
+                    i + 1,
+                    current,
+                    combinations
+            );
+
+            current.remove(current.size() - 1);
+        }
+    }
 }
+

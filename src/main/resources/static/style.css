@@ -1,0 +1,119 @@
+/* Reset básico: navegadores têm margens/paddings padrão diferentes entre si */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: system-ui, sans-serif;
+    background-color: #1b1b1b;
+    color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    padding: 40px 16px;
+}
+
+/* Container central, com largura máxima pra não esticar em telas grandes */
+h1, form, #resultado {
+    max-width: 480px;
+    width: 100%;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 0 auto;
+}
+
+fieldset {
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+legend {
+    padding: 0 6px;
+    font-weight: bold;
+    color: #9ad0ff;
+}
+
+label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 14px;
+    flex: 1;
+    min-width: 120px;
+}
+
+select, input {
+    background-color: #2a2a2a;
+    color: #f0f0f0;
+    border: 1px solid #3a3a3a;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 14px;
+}
+
+button {
+    background-color: #2f7d3f;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+button:hover {
+    background-color: #3a9a4f;
+}
+
+/* Card do resultado, preenchido pelo JavaScript no Passo 8 */
+#resultado {
+    margin: 24px auto 0;
+}
+
+.result-card {
+    background-color: #242424;
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: bold;
+    display: block;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: #b0b0b0;
+}
+
+.stat.win .stat-value { color: #4caf50; }
+.stat.loss .stat-value { color: #e05656; }
+.stat.tie .stat-value { color: #e0c256; }
+
+.error-card {
+    background-color: #3a1f1f;
+    border: 1px solid #a44;
+    border-radius: 8px;
+    padding: 16px;
+    color: #ffb3b3;
+}

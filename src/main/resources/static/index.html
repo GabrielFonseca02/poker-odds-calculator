@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Poker Odds Calculator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Poker Odds Calculator</h1>
+
+<form id="odds-form">
+
+    <fieldset>
+        <legend>Sua mão</legend>
+
+        <label>
+            Carta 1 - Valor
+            <select id="rank1">
+                <option value="TWO">2</option>
+                <option value="THREE">3</option>
+                <option value="FOUR">4</option>
+                <option value="FIVE">5</option>
+                <option value="SIX">6</option>
+                <option value="SEVEN">7</option>
+                <option value="EIGHT">8</option>
+                <option value="NINE">9</option>
+                <option value="TEN">10</option>
+                <option value="JACK">Valete</option>
+                <option value="QUEEN">Dama</option>
+                <option value="KING">Rei</option>
+                <option value="ACE" selected>Ás</option>
+            </select>
+        </label>
+
+        <label>
+            Carta 1 - Naipe
+            <select id="suit1">
+                <option value="HEARTS">Copas</option>
+                <option value="DIAMONDS">Ouros</option>
+                <option value="CLUBS">Paus</option>
+                <option value="SPADES">Espadas</option>
+            </select>
+        </label>
+
+        <br>
+
+        <label>
+            Carta 2 - Valor
+            <select id="rank2">
+                <option value="TWO">2</option>
+                <option value="THREE">3</option>
+                <option value="FOUR">4</option>
+                <option value="FIVE">5</option>
+                <option value="SIX">6</option>
+                <option value="SEVEN">7</option>
+                <option value="EIGHT">8</option>
+                <option value="NINE">9</option>
+                <option value="TEN">10</option>
+                <option value="JACK">Valete</option>
+                <option value="QUEEN">Dama</option>
+                <option value="KING">Rei</option>
+                <option value="ACE" selected>Ás</option>
+            </select>
+        </label>
+
+        <label>
+            Carta 2 - Naipe
+            <select id="suit2">
+                <option value="HEARTS">Copas</option>
+                <option value="DIAMONDS">Ouros</option>
+                <option value="CLUBS">Paus</option>
+                <option value="SPADES" selected>Espadas</option>
+            </select>
+        </label>
+    </fieldset>
+
+    <fieldset>
+        <legend>Configuração da simulação</legend>
+
+        <label>
+            Número de oponentes
+            <input type="number" id="opponents" min="1" max="9" value="1">
+        </label>
+
+        <label>
+            Número de simulações
+            <input type="number" id="simulations" min="1000" max="200000" step="1000" value="10000">
+        </label>
+    </fieldset>
+
+    <button type="submit">Calcular odds</button>
+
+</form>
+
+<div id="resultado"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
