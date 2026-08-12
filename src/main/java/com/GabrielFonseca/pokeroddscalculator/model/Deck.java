@@ -1,5 +1,5 @@
 package com.GabrielFonseca.pokeroddscalculator.model;
-
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,9 +18,7 @@ public class Deck {
     public List<Card> getCards(){
         return cards;
     }
-    public void shuffle(){
-        Collections.shuffle(cards);
-    }
+    public void shuffle(){Collections.shuffle(cards, ThreadLocalRandom.current());}
     public Card draw() {
         return cards.remove(0);
     }

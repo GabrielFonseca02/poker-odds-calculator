@@ -1,1 +1,1 @@
-{"heroCards":[{"rank":"ACE","suit":"HEARTS"}, {"rank": "KING","suit":"HEARTS"}],"opponents":1,"simulations":10000}
+{"heroCards":[{"rank":"ACE","suit":"HEARTS"},{"rank":"ACE","suit":"SPADES"}],"communityCards":[{"rank":"KING","suit":"HEARTS"},{"rank":"TWO","suit":"CLUBS"},{"rank":"SEVEN","suit":"DIAMONDS"}],"opponents":1,"simulations":10000}
