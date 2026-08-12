@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Arquivos locais de teste manual da API ###
+request.json
+test-odds.ps1
