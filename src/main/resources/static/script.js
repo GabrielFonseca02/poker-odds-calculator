@@ -79,15 +79,26 @@ function lerCartasDaMesa() {
     return cartas;
 }
 
+function lerNumeroOpcional(id) {
+    const valor = document.getElementById(id).value;
+    return valor === '' ? null : Number(valor);
+}
+
 document.getElementById('odds-form').addEventListener('submit', async function (event) {
     event.preventDefault();
 
     const payload = {
-            heroCards: [lerCarta('hero1'), lerCarta('hero2')],
-            communityCards: lerCartasDaMesa(),
-            opponents: Number(document.getElementById('opponents').value),
-            simulations: Number(document.getElementById('simulations').value)
-        };
+        heroCards: [lerCarta('hero1'), lerCarta('hero2')],
+        communityCards: lerCartasDaMesa(),
+        opponents: Number(document.getElementById('opponents').value),
+        simulations: Number(document.getElementById('simulations').value)
+    };
+
+    const pot = lerNumeroOpcional('pot');
+    const toCall = lerNumeroOpcional('to-call');
+
+    if (pot !== null) payload.pot = pot;
+    if (toCall !== null) payload.toCall = toCall;
 
     const resultado = document.getElementById('resultado');
     resultado.innerHTML = 'Calculando...';
@@ -116,11 +127,19 @@ document.getElementById('odds-form').addEventListener('submit', async function (
 function mostrarResultado(data) {
     const resultado = document.getElementById('resultado');
 
+    const quantidade = data.simulations.toLocaleString('pt-BR');
+
+    // Deixa explícito se o número é a resposta certa ou uma estimativa por amostragem
+    const origem = data.exact
+        ? `Resultado exato — todas as ${quantidade} combinações possíveis foram avaliadas`
+        : `Estimativa — ${quantidade} simulações`;
+
     resultado.innerHTML = `
         <div class="result-card">
             <div class="stat win">
                 <span class="stat-value">${data.winPercentage.toFixed(2)}%</span>
-                <span class="stat-label">Vitória</span>
+                        <p class="result-source ${data.exact ? 'exact' : ''}">${origem}</p>
+                        ${montarDecisao(data.decision)}
             </div>
             <div class="stat loss">
                 <span class="stat-value">${data.lossPercentage.toFixed(2)}%</span>
@@ -131,9 +150,40 @@ function mostrarResultado(data) {
                 <span class="stat-label">Empate</span>
             </div>
         </div>
+        <p class="result-source ${data.exact ? 'exact' : ''}">${origem}</p>
     `;
 }
+const ACOES = {
+    FOLD:  { rotulo: 'DESISTIR', classe: 'fold' },
+    CHECK: { rotulo: 'CHECAR',   classe: 'check' },
+    CALL:  { rotulo: 'PAGAR',    classe: 'call' },
+    BET:   { rotulo: 'APOSTAR',  classe: 'bet' },
+    RAISE: { rotulo: 'SUBIR',    classe: 'bet' }
+};
 
+function montarDecisao(decision) {
+
+    if (!decision) {
+        return '';
+    }
+
+    const acao = ACOES[decision.decision];
+
+    const preco = decision.requiredEquityPercentage > 0
+        ? `precisa de ${decision.requiredEquityPercentage.toFixed(1)}% para pagar compensar`
+        : 'não há aposta a pagar';
+
+    const sinal = decision.expectedValue >= 0 ? '+' : '';
+
+    return `
+        <div class="decision-card ${acao.classe}">
+            <span class="decision-action">${acao.rotulo}</span>
+            <p class="decision-detail">Sua equity é ${decision.equityPercentage.toFixed(1)}% e ${preco}</p>
+            <p class="decision-detail">Acima de ${decision.aggressionThresholdPercentage.toFixed(1)}% a jogada agressiva rende mais</p>
+            <p class="decision-detail">EV de continuar: ${sinal}${decision.expectedValue.toFixed(2)} fichas</p>
+        </div>
+    `;
+}
 function mostrarErro(data) {
     const resultado = document.getElementById('resultado');
 

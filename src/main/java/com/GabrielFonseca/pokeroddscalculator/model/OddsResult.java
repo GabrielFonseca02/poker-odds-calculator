@@ -10,13 +10,23 @@ public class OddsResult {
     private final int ties;
     private final int simulations;
 
+    /** true quando o resultado veio de enumeração exata, sem margem de erro amostral. */
+    private final boolean exact;
 
+    public double getEquityPercentage() {
+        return getWinPercentage() + getTiePercentage() / 2;
+    }
 
     public OddsResult(int wins, int losses, int ties, int simulations) {
+        this(wins, losses, ties, simulations, false);
+    }
+
+    public OddsResult(int wins, int losses, int ties, int simulations, boolean exact) {
         this.wins = wins;
         this.losses = losses;
         this.ties = ties;
         this.simulations = simulations;
+        this.exact = exact;
     }
 
     public double getWinPercentage() {

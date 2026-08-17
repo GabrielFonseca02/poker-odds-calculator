@@ -4,7 +4,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
-
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 public record OddsRequest(
@@ -23,7 +24,14 @@ public record OddsRequest(
 
         @Min(value = 1000, message = "Use pelo menos 1000 simulações")
         @Max(value = 200000, message = "No máximo 200.000 simulações")
-        int simulations
+        int simulations,
+
+        @Positive(message = "O pote deve ser maior que zero")
+        Double pot,
+
+        @PositiveOrZero(message = "O valor a pagar não pode ser negativo")
+        Double toCall
+
 ) {
         public OddsRequest {
                 if (communityCards == null) {

@@ -110,6 +110,18 @@ button:hover {
 .stat.loss .stat-value { color: #e05656; }
 .stat.tie .stat-value { color: #e0c256; }
 
+/* Origem do número: estimativa por amostragem ou resposta exata */
+.result-source {
+    font-size: 12px;
+    color: #8a8a8a;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.result-source.exact {
+    color: #9ad0ff;
+}
+
 .error-card {
     background-color: #3a1f1f;
     border: 1px solid #a44;
@@ -171,3 +183,36 @@ button:hover {
     width: 100%;
     margin-bottom: 4px;
 }
+
+/* Card de recomendação de jogada */
+.decision-card {
+    background-color: #242424;
+    border: 1px solid #3a3a3a;
+    border-left: 4px solid #3a3a3a;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 12px;
+}
+
+.decision-action {
+    font-size: 24px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.decision-detail {
+    font-size: 13px;
+    color: #b0b0b0;
+    margin-top: 4px;
+}
+
+.decision-card.fold  { border-left-color: #e05656; }
+.decision-card.check { border-left-color: #e0c256; }
+.decision-card.call  { border-left-color: #4caf50; }
+.decision-card.bet   { border-left-color: #9ad0ff; }
+
+.decision-card.fold  .decision-action { color: #e05656; }
+.decision-card.check .decision-action { color: #e0c256; }
+.decision-card.call  .decision-action { color: #4caf50; }
+.decision-card.bet   .decision-action { color: #9ad0ff; }

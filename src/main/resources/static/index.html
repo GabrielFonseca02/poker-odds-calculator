@@ -36,6 +36,21 @@
         </label>
     </fieldset>
 
+    <fieldset>
+        <legend>Situação de aposta</legend>
+        <p class="hint">Opcional — preencha os dois para receber uma recomendação</p>
+
+        <label>
+            Pote atual
+            <input type="number" id="pot" min="0" step="any" placeholder="já com a aposta dele">
+        </label>
+
+        <label>
+            Valor a pagar
+            <input type="number" id="to-call" min="0" step="any" placeholder="0 se ninguém apostou">
+        </label>
+    </fieldset>
+
     <button type="submit">Calcular odds</button>
 
 </form>
