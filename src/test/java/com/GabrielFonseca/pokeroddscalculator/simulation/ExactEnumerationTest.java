@@ -82,6 +82,7 @@ class ExactEnumerationTest {
         assertEquals(0, resultado.getLosses());
         assertEquals(0, resultado.getTies());
         assertEquals(100.0, resultado.getWinPercentage());
+        assertEquals(100.0, resultado.getEquityPercentage(), 1e-9);
     }
 
     @Test
@@ -108,6 +109,7 @@ class ExactEnumerationTest {
         assertEquals(990, resultado.getTies());
         assertEquals(0, resultado.getWins());
         assertEquals(0, resultado.getLosses());
+        assertEquals(50.0, resultado.getEquityPercentage(), 1e-9);
     }
 
     @Test

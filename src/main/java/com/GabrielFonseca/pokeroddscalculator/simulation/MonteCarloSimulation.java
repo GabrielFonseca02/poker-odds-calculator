@@ -32,14 +32,16 @@ public class MonteCarloSimulation {
         int wins = 0;
         int losses = 0;
         int ties = 0;
+        double equitySum = 0.0;
 
         for (OddsResult parcial : parciais) {
             wins += parcial.getWins();
             losses += parcial.getLosses();
             ties += parcial.getTies();
+            equitySum += parcial.getEquitySum();
         }
 
-        return new OddsResult(wins, losses, ties, simulations);
+        return new OddsResult(wins, losses, ties, simulations, false, equitySum);
     }
 
     private OddsResult simulateChunk(Hand playerHand, List<Card> knownCommunityCards, int opponents, int simulations) {
@@ -47,6 +49,7 @@ public class MonteCarloSimulation {
         int wins = 0;
         int losses = 0;
         int ties = 0;
+        double equitySum = 0.0;
 
         for (int i = 0; i < simulations; i++) {
 
@@ -92,36 +95,39 @@ public class MonteCarloSimulation {
             }
 
             HandResult playerResult = HandEvaluator.evaluate(playerSimulationHand);
-            boolean playerWon = true;
-            boolean tie = false;
+
+            boolean derrotado = false;
+
+            // Quantos oponentes empataram com o herói. É este número que se perdia
+            // antes, e sem ele não há como saber em quantas partes o pote foi dividido.
+            int empatados = 0;
 
             for (Hand opponent : opponentsHands) {
 
-                HandResult opponentResult = HandEvaluator.evaluate(opponent);
+                int comparacao = HandEvaluator.compare(playerResult, HandEvaluator.evaluate(opponent));
 
-                int compare = HandEvaluator.compare(playerResult, opponentResult);
-
-                if (compare < 0) {
-                    playerWon = false;
-                    tie = false;
+                // Basta um oponente melhor para o herói não levar nada
+                if (comparacao < 0) {
+                    derrotado = true;
                     break;
                 }
 
-                if (compare == 0) {
-                    playerWon = false;
-                    tie = true;
+                if (comparacao == 0) {
+                    empatados++;
                 }
             }
 
-            if (playerWon) {
-                wins++;
-            } else if (tie) {
-                ties++;
-            } else {
+            if (derrotado) {
                 losses++;
+            } else if (empatados > 0) {
+                ties++;
+                equitySum += 1.0 / (empatados + 1);   // divide o pote entre herói e empatados
+            } else {
+                wins++;
+                equitySum += 1.0;
             }
         }
 
-        return new OddsResult(wins, losses, ties, simulations);
+        return new OddsResult(wins, losses, ties, simulations, false, equitySum);
     }
 }

@@ -50,6 +50,11 @@ public class ExactEnumeration {
         int losses = 0;
         int ties = 0;
 
+        // A enumeração só cobre heads-up, então todo empate é a dois: 1/2 para cada um.
+        // O valor continua explícito em vez de assumido, para não ressuscitar o /2
+        // caso um dia isto passe a suportar mais oponentes.
+        double equitySum = 0.0;
+
         // Cada par não ordenado de cartas restantes é uma mão possível do oponente
         for (int i = 0; i < cartasRestantes.size(); i++) {
             for (int j = i + 1; j < cartasRestantes.size(); j++) {
@@ -66,15 +71,17 @@ public class ExactEnumeration {
 
                 if (comparacao > 0) {
                     wins++;
+                    equitySum += 1.0;
                 } else if (comparacao == 0) {
                     ties++;
+                    equitySum += 0.5;
                 } else {
                     losses++;
                 }
             }
         }
 
-        return new OddsResult(wins, losses, ties, wins + losses + ties, true);
+        return new OddsResult(wins, losses, ties, wins + losses + ties, true, equitySum);
     }
 
     private List<Card> cartasRestantes(List<Card> cartasConhecidas) {

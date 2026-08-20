@@ -2,9 +2,9 @@
 
 Calculadora de probabilidades para Texas Hold'em. Informe sua mão e as cartas da mesa, e a aplicação estima sua chance real de vitória através de simulação de Monte Carlo.
 
-Funciona em todas as fases da mão — pré-flop, flop, turn e river — permitindo acompanhar como suas chances mudam conforme as cartas abrem.
+Funciona em todas as fases da mão — pré-flop, flop, turn e river — permitindo acompanhar como suas chances mudam conforme as cartas abrem. Informando o tamanho do pote e o valor a pagar, ela vai além da probabilidade e recomenda a jogada.
 
-![Interface da calculadora mostrando as odds no turn](docs/screenshot.png)
+![Interface da calculadora mostrando equity e recomendação de jogada no flop](docs/screenshot.png)
 
 ---
 
@@ -12,6 +12,8 @@ Funciona em todas as fases da mão — pré-flop, flop, turn e river — permiti
 
 - Cálculo de equity contra 1 a 9 oponentes
 - Suporte às quatro fases da mão (pré-flop, flop, turn, river)
+- **Recomendação de jogada** a partir de pot odds e valor esperado: desistir, checar, pagar, apostar ou aumentar
+- Tratamento correto de empates multiway, em que o pote se divide entre todos os empatados
 - Avaliação completa de mãos de poker, incluindo desempate por kicker e a sequência A-2-3-4-5 com o Ás valendo 1
 - Resposta **exata** no river contra um oponente, por enumeração completa em vez de amostragem
 - Simulação paralelizada, adaptando-se automaticamente ao número de núcleos disponíveis
@@ -28,6 +30,8 @@ Funciona em todas as fases da mão — pré-flop, flop, turn e river — permiti
 | Front-end | HTML, CSS e JavaScript puro (sem framework) |
 
 O front-end é servido pelo próprio Spring Boot a partir de `src/main/resources/static`, o que mantém API e interface na mesma origem e dispensa configuração de CORS.
+
+As cartas são escolhidas em um seletor visual com o baralho completo, e não em campos de texto. A escolha não é estética: cartas já em uso aparecem desabilitadas, e valor e naipe são selecionados como uma coisa só. Isso torna carta repetida e carta pela metade **impossíveis de representar** na interface, em vez de erros a serem validados depois.
 
 ## Como rodar
 
@@ -69,7 +73,9 @@ Para rodar os testes:
     { "rank": "SEVEN", "suit": "DIAMONDS" }
   ],
   "opponents": 1,
-  "simulations": 10000
+  "simulations": 10000,
+  "pot": 120,
+  "toCall": 40
 }
 ```
 
@@ -79,6 +85,10 @@ Para rodar os testes:
 | `communityCards` | 0 (pré-flop), 3 (flop), 4 (turn) ou 5 (river). Pode ser omitido |
 | `opponents` | Entre 1 e 9 |
 | `simulations` | Entre 1.000 e 200.000 |
+| `pot` | Opcional. Maior que zero. Pote atual, já incluindo a aposta do oponente |
+| `toCall` | Opcional. Zero ou maior. Quanto custa continuar na mão |
+
+`pot` e `toCall` andam juntos: com apenas um dos dois não há como calcular o preço, e a requisição é rejeitada. Omitindo os dois, a resposta traz apenas as probabilidades, sem recomendação.
 
 Valores de `rank`: `TWO` a `TEN`, `JACK`, `QUEEN`, `KING`, `ACE`.
 Valores de `suit`: `HEARTS`, `DIAMONDS`, `CLUBS`, `SPADES`.
@@ -94,11 +104,21 @@ Valores de `suit`: `HEARTS`, `DIAMONDS`, `CLUBS`, `SPADES`.
   "winPercentage": 88.97,
   "lossPercentage": 10.92,
   "tiePercentage": 0.11,
-  "exact": false
+  "equityPercentage": 89.025,
+  "exact": false,
+  "decision": {
+    "decision": "RAISE",
+    "equityPercentage": 89.025,
+    "requiredEquityPercentage": 25.0,
+    "aggressionThresholdPercentage": 50.0,
+    "expectedValue": 102.43
+  }
 }
 ```
 
 O campo `exact` informa como o número foi obtido. Quando `false`, o resultado é uma estimativa por amostragem e `simulations` traz quantas amostras foram usadas. Quando `true`, todas as possibilidades foram percorridas: não há margem de erro, e `simulations` passa a significar o número de combinações avaliadas — 990 no river contra um oponente, independentemente do valor pedido na requisição.
+
+O objeto `decision` é omitido da resposta quando `pot` e `toCall` não são informados.
 
 **Resposta — 400 Bad Request**
 
@@ -112,6 +132,56 @@ O campo `exact` informa como o número foi obtido. Quando `false`, o resultado �
 ```
 
 Erros de validação e de domínio (cartas repetidas, quantidade inválida de cartas na mesa) são tratados de forma centralizada por um `@RestControllerAdvice`, garantindo o mesmo formato de resposta em toda a API.
+
+## Da probabilidade à decisão
+
+Saber que sua mão vence 34% das vezes não diz se você deve pagar. O que decide é o **preço**: 34% é uma mão excelente para pagar 10 em um pote de 100, e um erro caro para pagar 200.
+
+O `DecisionAdvisor` traduz equity e tamanho do pote em uma recomendação, a partir de três números.
+
+**Equity mínima para pagar** — o ponto de equilíbrio, abaixo do qual pagar dá prejuízo no longo prazo:
+
+```
+equity mínima = toCall / (pot + toCall)
+```
+
+**Limiar de agressão** — acima desta equity, apostar rende mais que checar. Assumindo que todos paguem, a diferença entre apostar e checar se reduz a `B × (e × (n+1) − 1)`, cujo sinal depende apenas de `e > 1/(n+1)`:
+
+```
+limiar = 1 / (oponentes + 1)
+```
+
+Contra 1 oponente dá 50%; contra 2, 33,3%; contra 3, 25%. Faz sentido: quanto mais gente na mão, menos equity você precisa para que apostar valha a pena, porque cada oponente que paga aumenta o que você ganha quando acerta.
+
+**Valor esperado de continuar**, em fichas:
+
+```
+EV = equity × pot − (1 − equity) × toCall
+```
+
+A recomendação sai da combinação dos três. Sem aposta na frente (`toCall == 0`), desistir nunca é a melhor jogada — resta checar ou apostar, decidido pelo limiar de agressão. Havendo aposta, o preço vem primeiro: por melhor que seja a mão, uma aposta grande o bastante a torna impagável.
+
+### Equity em empates multiway
+
+Equity é a fração do pote que cabe a você no longo prazo. A primeira implementação calculava:
+
+```java
+equity = winPercentage + tiePercentage / 2;
+```
+
+O `/2` assume que todo empate é entre duas pessoas. Isso vale heads-up, mas num empate a quatro você leva 1/4 do pote, não metade. O erro é sistemático e sempre para cima — e como é justamente esse número que alimenta o `DecisionAdvisor`, a consequência não era um percentual feio na tela: era o app recomendando pagar apostas com valor esperado negativo.
+
+A informação necessária para corrigir não existia no `OddsResult`. Ele guardava "empatou 1.847 vezes", não *com quantos jogadores* cada empate foi — esse dado era descartado dentro do laço, no instante em que o contador era incrementado.
+
+A correção foi parar de descartá-lo. Cada rodada passa a acumular diretamente a fração do pote que coube ao herói:
+
+| Resultado | Fração acumulada |
+|---|---|
+| Vitória | 1 |
+| Empate com `k` oponentes | 1 / (k + 1) |
+| Derrota | 0 |
+
+`wins`, `losses` e `ties` continuam existindo para exibição, mas deixaram de ser a base do cálculo. É um caso claro de um número derivado sair errado porque o dado bruto foi agregado cedo demais.
 
 ## Performance
 
@@ -128,6 +198,8 @@ A simulação foi paralelizada dividindo o total em blocos independentes, um por
 Medido em um AMD Ryzen 5 5600X (6 núcleos físicos, 12 threads).
 
 O ganho fica abaixo das 12 threads disponíveis por dois motivos: SMT não equivale a núcleos físicos (acrescenta cerca de 20-30% de throughput, não o dobro), e a alocação de objetos por simulação transfere parte do gargalo da CPU para o subsistema de memória e o coletor de lixo.
+
+Os blocos são somados em ordem determinística, por uma única thread, depois que todos terminam. Isso importa porque a equity é acumulada em ponto flutuante, e a soma de `double` depende da ordem das parcelas: mantendo a ordem fixa, duas execuções com a mesma semente produziriam bit a bit o mesmo resultado.
 
 ### Enumeração exata no river
 
@@ -174,6 +246,21 @@ A enumeração exata trouxe uma vantagem que o Monte Carlo não permite: por ser
 
 O último é o mais importante — é ele que garante que a estratégia nova e a antiga concordam entre si.
 
+### Testando um algoritmo aleatório
+
+Monte Carlo devolve um número diferente a cada execução, o que impede asserções sobre valores exatos. Afrouxar a tolerância até o teste parar de falhar resolve a instabilidade e destrói o poder de detecção junto.
+
+A saída foi escolher cenários em que a aleatoriedade não altera o resultado. Com um royal flush comunitário na mesa, nenhuma carta que qualquer jogador possa ter muda nada: todos jogam a mesa e dividem o pote, em toda simulação. O algoritmo continua sorteando, mas a saída é determinística — e a equity tem que ser exatamente `100 / (oponentes + 1)`.
+
+| Oponentes | Equity esperada |
+|---|---|
+| 1 | 50% |
+| 2 | 33,3% |
+| 3 | 25% |
+| 9 | 10% |
+
+Esse mesmo cenário serve de teste de regressão para o `/2`: a fórmula antiga devolvia 50% em todas as linhas, e falha em três das quatro. Complementam a suíte um teste de compatibilidade (heads-up, a equity continua sendo vitória + metade do empate) e uma invariante que vale para qualquer entrada: a equity nunca fica abaixo da taxa de vitória nem acima de vitória mais empate.
+
 ## Estrutura
 
 ```
@@ -181,14 +268,18 @@ src/main/java/com/GabrielFonseca/pokeroddscalculator/
 ├── controller/    # Endpoint REST
 ├── dto/           # Contratos de entrada e saída da API
 ├── exception/     # Tratamento centralizado de erros
-├── model/         # Card, Rank, Suit, Deck, Hand, HandRank, OddsResult
-├── service/       # HandEvaluator — classificação e comparação de mãos
+├── model/         # Card, Rank, Suit, Deck, Hand, HandRank, OddsResult,
+│                  # Decision e DecisionResult
+├── service/       # HandEvaluator (classificação e comparação de mãos) e
+│                  # DecisionAdvisor (pot odds, limiar de agressão e EV)
 └── simulation/    # OddsCalculator (escolha da estratégia), MonteCarloSimulation
                    # (particionamento e execução paralela) e ExactEnumeration
 
 src/main/resources/static/    # Interface web
 src/test/java/                # Testes unitários
 ```
+
+O `OddsResponse` existe separado do `OddsResult` para que o contrato público da API não fique amarrado ao modelo de domínio: a recomendação de jogada é opcional e não pertence ao resultado de uma simulação, que não sabe nada sobre apostas.
 
 ### Como a avaliação de mãos funciona
 
@@ -200,7 +291,7 @@ Cada avaliação devolve a categoria da mão (par, trinca, flush...) junto com o
 
 - **Enumeração exata no turn**, estendendo o que já funciona no river. Contra um oponente são C(46,2) × 44 = 45.540 combinações — ainda bem abaixo das 200.000 amostras que o Monte Carlo faria, e com resposta exata. O `OddsCalculator` já está estruturado para receber o caso sem alterar o controller
 - **Otimização do avaliador de mãos**, hoje o principal consumidor de CPU
-- **Pot odds e valor esperado**, transformando a calculadora de uma ferramenta de estimativa em uma ferramenta de decisão
+- **Range de mãos do oponente** em vez de duas cartas aleatórias, aproximando a simulação de como o jogo é jogado de verdade
 - **Deploy** em ambiente público
 
 ---

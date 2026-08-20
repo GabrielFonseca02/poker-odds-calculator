@@ -1,218 +1,549 @@
-/* Reset básico: navegadores têm margens/paddings padrão diferentes entre si */
-* {
+/* ============================================================
+   1. Tokens — toda cor e medida do tema mora aqui.
+      Trocar o visual do app inteiro = mexer so neste bloco.
+   ============================================================ */
+:root {
+    --bg:          #0e1216;
+    --surface:     #181d23;
+    --surface-2:   #212831;
+    --border:      #2c343d;
+
+    --text:        #e8ecf1;
+    --text-dim:    #93a1b0;
+    --text-faint:  #6b7885;
+
+    --felt:        #24855d;
+    --felt-edge:   #0d3f28;
+    --rail:        #2a1f16;
+
+    --accent:      #7cc0ff;
+    --win:         #4ade80;
+    --loss:        #f87171;
+    --tie:         #fbbf24;
+
+    --radius:      12px;
+    --radius-lg:   18px;
+}
+
+/* ============================================================
+   2. Reset
+   ============================================================ */
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
 body {
-    font-family: system-ui, sans-serif;
-    background-color: #1b1b1b;
-    color: #f0f0f0;
+    min-height: 100vh;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
     display: flex;
     justify-content: center;
-    padding: 40px 16px;
+    padding: 32px 16px 64px;
 }
 
-/* Container central, com largura máxima pra não esticar em telas grandes */
-h1, form, #resultado {
-    max-width: 480px;
+/* Um unico container centraliza tudo. O resto herda a largura dele. */
+.app {
     width: 100%;
-}
-
-h1 {
-    text-align: center;
-    margin-bottom: 24px;
-}
-
-form {
+    max-width: 720px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    margin: 0 auto;
+    gap: 22px;
 }
 
-fieldset {
-    border: 1px solid #3a3a3a;
-    border-radius: 8px;
-    padding: 16px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-legend {
-    padding: 0 6px;
-    font-weight: bold;
-    color: #9ad0ff;
-}
-
-label {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-size: 14px;
-    flex: 1;
-    min-width: 120px;
-}
-
-select, input {
-    background-color: #2a2a2a;
-    color: #f0f0f0;
-    border: 1px solid #3a3a3a;
-    border-radius: 4px;
-    padding: 8px;
-    font-size: 14px;
-}
-
-button {
-    background-color: #2f7d3f;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 12px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.15s ease;
-}
-
-button:hover {
-    background-color: #3a9a4f;
-}
-
-/* Card do resultado, preenchido pelo JavaScript no Passo 8 */
-#resultado {
-    margin: 24px auto 0;
-}
-
-.result-card {
-    background-color: #242424;
-    border: 1px solid #3a3a3a;
-    border-radius: 8px;
-    padding: 16px;
-    display: flex;
-    justify-content: space-around;
+/* ============================================================
+   3. Cabecalho
+   ============================================================ */
+.app-header {
     text-align: center;
 }
 
-.stat-value {
-    font-size: 28px;
-    font-weight: bold;
+.app-header h1 {
+    /* clamp(min, ideal, max): a fonte acompanha a tela sem media query */
+    font-size: clamp(26px, 5vw, 36px);
+    letter-spacing: -0.02em;
+}
+
+.subtitle {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+/* ============================================================
+   4. A mesa
+   ============================================================ */
+.felt {
+    border: 8px solid var(--rail);
+    border-radius: 32px;
+    padding: 26px 20px;
+
+    /* Gradiente radial: o centro do feltro pega mais luz que as bordas */
+    background: radial-gradient(ellipse 120% 100% at 50% 25%,
+                                var(--felt) 0%,
+                                var(--felt-edge) 100%);
+
+    /* inset joga a sombra pra dentro — da profundidade de mesa de verdade */
+    box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.45),
+                0 18px 40px rgba(0, 0, 0, 0.5);
+
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.area-label {
     display: block;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: rgba(255, 255, 255, 0.55);
+    margin-bottom: 10px;
 }
 
-.stat-label {
-    font-size: 13px;
-    color: #b0b0b0;
+.slot-row {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
-.stat.win .stat-value { color: #4caf50; }
-.stat.loss .stat-value { color: #e05656; }
-.stat.tie .stat-value { color: #e0c256; }
 
-/* Origem do número: estimativa por amostragem ou resposta exata */
-.result-source {
+.hint {
     font-size: 12px;
-    color: #8a8a8a;
+    color: var(--text-faint);
     text-align: center;
     margin-top: 10px;
 }
 
-.result-source.exact {
-    color: #9ad0ff;
+.felt .hint {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+
+.controls {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* auto-fit + minmax = responsivo sem nenhuma media query */
+.control-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+}
+
+.control {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.control-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+input[type="number"] {
+    background-color: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font-size: 15px;
+    font-family: inherit;
+    width: 100%;
+}
+
+input[type="number"]:hover {
+    border-color: #3d4854;
+}
+
+input::placeholder {
+    color: var(--text-faint);
+}
+
+/* ============================================================
+   7. Botoes
+   ============================================================ */
+.btn-primary {
+    background: linear-gradient(180deg, #2f9e5c 0%, #1f7a45 100%);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+    filter: brightness(1.12);
+}
+
+.btn-primary:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-ghost {
+    background: none;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-ghost:hover {
+    color: var(--text);
+    border-color: #3d4854;
+}
+
+
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+
+#resultado:empty {
+    display: none;
+}
+
+
+/* ============================================================
+   10. Cartas
+       .slot e .deck-card compartilham o formato; o que muda
+       e o preenchimento (tracejado vazio vs. face branca).
+   ============================================================ */
+.slot,
+.deck-card {
+    aspect-ratio: 5 / 7;
+    border-radius: 8px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.slot {
+    width: 62px;
+    background-color: rgba(0, 0, 0, 0.25);
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* O "+" do slot vazio vem daqui — o JS nao precisa escrever texto nenhum */
+.slot:not(.is-filled)::before {
+    content: "+";
+    font-size: 24px;
+    font-weight: 300;
+    line-height: 1;
+}
+
+.slot:hover {
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-2px);
+}
+
+/* A face branca: vale para o slot preenchido e para o baralho */
+.slot.is-filled,
+.deck-card {
+    background: linear-gradient(165deg, #ffffff 0%, #e4e7ee 100%);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+}
+
+.rank {
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.suit {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.is-red   { color: #c8102e; }
+.is-black { color: #16181d; }
+
+/* ============================================================
+   11. Modal do baralho
+   ============================================================ */
+.deck-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background-color: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+/* OBRIGATORIO: sem isto o display:flex acima vence o hidden do navegador
+   e o modal fica visivel o tempo todo. */
+.deck-overlay[hidden] {
+    display: none;
+}
+
+.deck-dialog {
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+.deck-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.deck-header h2 {
+    font-size: 17px;
+}
+
+.deck-close {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 26px;
+    line-height: 1;
+    padding: 0 6px;
+    cursor: pointer;
+}
+
+.deck-close:hover {
+    color: var(--text);
+}
+
+/* 13 colunas = um naipe por linha, na ordem do baralho.
+   minmax(34px, 1fr): nunca menor que 34px; se nao couber, a grade rola. */
+.deck-grid {
+    display: grid;
+    grid-template-columns: repeat(13, minmax(34px, 1fr));
+    gap: 5px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.deck-card:not(:disabled):hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.55);
+}
+
+/* Carta ja em uso na mesa ou na mao: apagada e nao clicavel.
+   E isto que torna carta repetida impossivel (bug 5). */
+.deck-card:disabled {
+    opacity: 0.2;
+    filter: grayscale(1);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Carta que ja esta no slot sendo editado */
+.deck-card.is-selected {
+    outline: 3px solid var(--accent);
+    outline-offset: 1px;
+}
+
+/* ============================================================
+   12. Mensagens de status, aviso e erro
+   ============================================================ */
+.status-card,
+.warn-card,
+.error-card {
+    border: 1px solid;
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.status-card {
+    background-color: var(--surface);
+    border-color: var(--border);
+    color: var(--text-dim);
+}
+
+.warn-card {
+    background-color: #2a2416;
+    border-color: #7a6634;
+    color: #f5d98a;
 }
 
 .error-card {
-    background-color: #3a1f1f;
-    border: 1px solid #a44;
-    border-radius: 8px;
-    padding: 16px;
+    background-color: #2a1618;
+    border-color: #7a3438;
     color: #ffb3b3;
 }
 
-.card-inputs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    width: 100%;
-}
-
-.card-input {
+/* ============================================================
+   13. Painel de resultado
+       #resultado:empty (secao 9) continua vencendo este display:flex
+       porque id + pseudo-classe tem especificidade maior que id sozinho.
+   ============================================================ */
+#resultado {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    flex: 1;
-    min-width: 110px;
+    gap: 14px;
 }
 
-.card-input-label {
-    font-size: 12px;
-    color: #b0b0b0;
-}
-
-.hint {
-    font-size: 12px;
-    color: #8a8a8a;
-    width: 100%;
-    margin-bottom: 4px;
-}
-
-.card-inputs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    width: 100%;
-}
-
-.card-input {
+.result-card {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 22px 20px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    flex: 1;
-    min-width: 110px;
+    gap: 16px;
 }
 
-.card-input-label {
+.equity {
+    text-align: center;
+}
+
+.equity-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--text-dim);
+}
+
+.equity-value {
+    display: block;
+    font-size: clamp(38px, 9vw, 52px);
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--accent);
+    /* digitos de largura fixa: o numero nao "treme" ao recalcular */
+    font-variant-numeric: tabular-nums;
+}
+
+/* Barra proporcional: as tres larguras somam 100% */
+.equity-bar {
+    display: flex;
+    height: 10px;
+    border-radius: 999px;
+    overflow: hidden;
+    background-color: var(--surface-2);
+}
+
+.bar-win  { background-color: var(--win); }
+.bar-tie  { background-color: var(--tie); }
+.bar-loss { background-color: var(--loss); }
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    text-align: center;
+}
+
+.stat-value {
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
     font-size: 12px;
-    color: #b0b0b0;
+    color: var(--text-dim);
 }
 
-.hint {
+.stat.win  .stat-value { color: var(--win);  }
+.stat.tie  .stat-value { color: var(--tie);  }
+.stat.loss .stat-value { color: var(--loss); }
+
+.result-source {
     font-size: 12px;
-    color: #8a8a8a;
-    width: 100%;
-    margin-bottom: 4px;
+    color: var(--text-faint);
+    text-align: center;
 }
 
-/* Card de recomendação de jogada */
+.result-source.exact {
+    color: var(--accent);
+}
+
+/* ============================================================
+   14. Card de recomendacao
+   ============================================================ */
 .decision-card {
-    background-color: #242424;
-    border: 1px solid #3a3a3a;
-    border-left: 4px solid #3a3a3a;
-    border-radius: 8px;
-    padding: 16px;
-    margin-top: 12px;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
 }
 
 .decision-action {
-    font-size: 24px;
-    font-weight: bold;
     display: block;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
     margin-bottom: 8px;
 }
 
 .decision-detail {
     font-size: 13px;
-    color: #b0b0b0;
-    margin-top: 4px;
+    color: var(--text-dim);
+    margin-top: 5px;
 }
 
-.decision-card.fold  { border-left-color: #e05656; }
-.decision-card.check { border-left-color: #e0c256; }
-.decision-card.call  { border-left-color: #4caf50; }
-.decision-card.bet   { border-left-color: #9ad0ff; }
+.decision-card.fold  { border-left-color: var(--loss);   }
+.decision-card.check { border-left-color: var(--tie);    }
+.decision-card.call  { border-left-color: var(--win);    }
+.decision-card.bet   { border-left-color: var(--accent); }
 
-.decision-card.fold  .decision-action { color: #e05656; }
-.decision-card.check .decision-action { color: #e0c256; }
-.decision-card.call  .decision-action { color: #4caf50; }
-.decision-card.bet   .decision-action { color: #9ad0ff; }
+.decision-card.fold  .decision-action { color: var(--loss);   }
+.decision-card.check .decision-action { color: var(--tie);    }
+.decision-card.call  .decision-action { color: var(--win);    }
+.decision-card.bet   .decision-action { color: var(--accent); }
+
+.ev-positivo { color: var(--win);  }
+.ev-negativo { color: var(--loss); }

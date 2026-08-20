@@ -13,20 +13,28 @@ public class OddsResult {
     /** true quando o resultado veio de enumeração exata, sem margem de erro amostral. */
     private final boolean exact;
 
-    public double getEquityPercentage() {
-        return getWinPercentage() + getTiePercentage() / 2;
-    }
+    /**
+     * Soma das frações do pote que couberam ao herói ao longo das simulações.
+     *
+     * Cada rodada contribui com 1 na vitória, 0 na derrota e 1/(k+1) num empate
+     * com k oponentes. Guardar a soma, em vez de derivá-la de wins e ties, é o
+     * que permite tratar empates multiway corretamente: o número de jogadores
+     * que dividiram o pote se perde no instante em que ties é incrementado.
+     */
+    private final double equitySum;
 
-    public OddsResult(int wins, int losses, int ties, int simulations) {
-        this(wins, losses, ties, simulations, false);
-    }
-
-    public OddsResult(int wins, int losses, int ties, int simulations, boolean exact) {
+    public OddsResult(int wins, int losses, int ties, int simulations, boolean exact, double equitySum) {
         this.wins = wins;
         this.losses = losses;
         this.ties = ties;
         this.simulations = simulations;
         this.exact = exact;
+        this.equitySum = equitySum;
+    }
+
+    /** Fração média do pote que cabe ao herói. É o número que decide a jogada. */
+    public double getEquityPercentage() {
+        return (equitySum * 100.0) / simulations;
     }
 
     public double getWinPercentage() {
@@ -48,6 +56,7 @@ public class OddsResult {
                 Vitórias: %d (%.2f%%)
                 Derrotas: %d (%.2f%%)
                 Empates: %d (%.2f%%)
+                Equity: %.2f%%
                 """,
                 simulations,
                 wins,
@@ -55,6 +64,7 @@ public class OddsResult {
                 losses,
                 getLossPercentage(),
                 ties,
-                getTiePercentage());
+                getTiePercentage(),
+                getEquityPercentage());
     }
 }

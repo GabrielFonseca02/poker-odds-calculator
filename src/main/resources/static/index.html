@@ -1,61 +1,92 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Poker Odds Calculator</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♠️</text></svg>">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>Poker Odds Calculator</h1>
+<main class="app">
 
-<form id="odds-form">
+    <header class="app-header">
+        <h1>Poker Odds Calculator</h1>
+        <p class="subtitle">Texas Hold'em &middot; Monte Carlo e enumera&ccedil;&atilde;o exata</p>
+    </header>
 
-    <fieldset>
-        <legend>Sua mão</legend>
-        <div id="hero-cards" class="card-inputs"></div>
-    </fieldset>
+    <!-- A mesa. Os slots sao gerados pelo script.js a partir do estado. -->
+    <section class="table" aria-label="Mesa">
+        <div class="felt">
 
-    <fieldset>
-        <legend>Cartas da mesa</legend>
-        <p class="hint">Deixe em branco o que ainda não abriu</p>
-        <div id="community-cards" class="card-inputs"></div>
-    </fieldset>
+            <div class="board-area">
+                <span class="area-label">Cartas da mesa</span>
+                <div class="slot-row" id="community-slots"></div>
+                <p class="hint">Clique num slot para escolher. Deixe vazio o que ainda n&atilde;o abriu.</p>
+            </div>
 
-    <fieldset>
-        <legend>Configuração da simulação</legend>
+            <div class="hero-area">
+                <span class="area-label">Sua m&atilde;o</span>
+                <div class="slot-row" id="hero-slots"></div>
+            </div>
 
-        <label>
-            Número de oponentes
-            <input type="number" id="opponents" min="1" max="9" value="1">
-        </label>
+        </div>
+    </section>
 
-        <label>
-            Número de simulações
-            <input type="number" id="simulations" min="1000" max="200000" step="1000" value="10000">
-        </label>
-    </fieldset>
+    <!-- Preenchido pelo script.js. aria-live faz o leitor de tela anunciar o resultado. -->
+    <section id="resultado" aria-live="polite"></section>
 
-    <fieldset>
-        <legend>Situação de aposta</legend>
-        <p class="hint">Opcional — preencha os dois para receber uma recomendação</p>
+    <form id="odds-form" class="controls">
 
-        <label>
-            Pote atual
-            <input type="number" id="pot" min="0" step="any" placeholder="já com a aposta dele">
-        </label>
+        <div class="control-grid">
 
-        <label>
-            Valor a pagar
-            <input type="number" id="to-call" min="0" step="any" placeholder="0 se ninguém apostou">
-        </label>
-    </fieldset>
+            <label class="control">
+                <span class="control-label">Oponentes</span>
+                <input type="number" id="opponents" min="1" max="9" value="1" required>
+            </label>
 
-    <button type="submit">Calcular odds</button>
+            <label class="control">
+                <span class="control-label">Simula&ccedil;&otilde;es</span>
+                <input type="number" id="simulations" min="1000" max="200000" step="1000" value="10000" required>
+            </label>
 
-</form>
+            <label class="control">
+                <span class="control-label">Pote atual</span>
+                <!-- min 0.01: o backend marca pot como @Positive, entao 0 seria rejeitado -->
+                <input type="number" id="pot" min="0.01" step="any" placeholder="opcional">
+            </label>
 
-<div id="resultado"></div>
+            <label class="control">
+                <span class="control-label">Valor a pagar</span>
+                <input type="number" id="to-call" min="0" step="any" placeholder="opcional">
+            </label>
+
+        </div>
+
+        <p class="hint">Preencha pote e valor a pagar juntos para receber uma recomenda&ccedil;&atilde;o de jogada.</p>
+
+        <button type="submit" id="calcular" class="btn-primary">Calcular odds</button>
+
+    </form>
+
+</main>
+
+<!-- Modal do baralho. Nasce escondido; o script.js controla o atributo hidden. -->
+<div class="deck-overlay" id="deck-overlay" hidden>
+    <div class="deck-dialog" role="dialog" aria-modal="true" aria-labelledby="deck-title">
+
+        <div class="deck-header">
+            <h2 id="deck-title">Escolha a carta</h2>
+            <button type="button" class="deck-close" id="deck-close" aria-label="Fechar">&times;</button>
+        </div>
+
+        <div class="deck-grid" id="deck-grid"></div>
+
+        <button type="button" class="btn-ghost" id="deck-clear">Limpar este slot</button>
+
+    </div>
+</div>
 
 <script src="script.js"></script>
 </body>
