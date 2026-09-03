@@ -1,0 +1,44 @@
+# Publica a interface no GitHub Pages.
+#
+# Serve direto src/main/resources/static, a mesma pasta que o Spring Boot entrega
+# localmente, para não existirem duas cópias do front-end saindo de sincronia.
+name: Deploy no GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Um deploy por vez; se chegar push novo no meio, o anterior é descartado
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@v4
+
+      - name: Preparar o Pages
+        uses: actions/configure-pages@v5
+
+      - name: Empacotar a pasta static
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: src/main/resources/static
+
+      - name: Publicar
+        id: deployment
+        uses: actions/deploy-pages@v4

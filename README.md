@@ -31,7 +31,17 @@ Funciona em todas as fases da mão — pré-flop, flop, turn e river — permiti
 
 O front-end é servido pelo próprio Spring Boot a partir de `src/main/resources/static`, o que mantém API e interface na mesma origem e dispensa configuração de CORS.
 
+Essa mesma pasta é publicada no GitHub Pages. Para que a página funcione sem back-end no ar, a lógica de cálculo existe duas vezes: em Java, exposta pela API REST, e em JavaScript (`poker-engine.js`), rodando no navegador. As duas seguem os mesmos critérios de classificação, desempate e equity — no river contra um oponente, onde ambas enumeram todas as 990 combinações, devolvem resultados idênticos carta a carta.
+
 As cartas são escolhidas em um seletor visual com o baralho completo, e não em campos de texto. A escolha não é estética: cartas já em uso aparecem desabilitadas, e valor e naipe são selecionados como uma coisa só. Isso torna carta repetida e carta pela metade **impossíveis de representar** na interface, em vez de erros a serem validados depois.
+
+## No ar
+
+https://gabrielfonseca02.github.io/poker-odds-calculator/
+
+O deploy é automático: o workflow em `.github/workflows/pages.yml` publica a pasta `src/main/resources/static` a cada push na `main`. Não existe uma segunda cópia do front-end — o Pages serve exatamente os mesmos arquivos que o Spring Boot entrega localmente.
+
+Como o cálculo roda no navegador de quem acessa, não há servidor para hibernar, cold start nem custo de hospedagem. A simulação é distribuída entre os núcleos da máquina do visitante com Web Workers, seguindo o mesmo particionamento que o `MonteCarloSimulation` faz com `parallelStream` no back-end.
 
 ## Como rodar
 

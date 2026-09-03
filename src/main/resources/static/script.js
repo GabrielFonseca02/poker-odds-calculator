@@ -433,29 +433,19 @@ form.addEventListener('submit', async function (event) {
     mostrarMensagem('status-card', 'Rodando a simula\u00e7\u00e3o\u2026');
 
     try {
-        const response = await fetch('/api/odds', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(montarPayload())
-        });
-
-        const data = await response.json();
-
-        // fetch NAO lanca em 400/500 — a checagem tem que ser explicita
-        if (!response.ok) {
-            const detalhes = (data.details && data.details.length > 0)
-                ? data.details.join(' \u00b7 ')
-                : data.message;
-            mostrarMensagem('error-card', detalhes);
-            return;
-        }
-
-        mostrarResultado(data);
+        // O calculo roda no proprio navegador, dividido entre os workers. Nao ha
+        // servidor envolvido, e e por isso que a pagina funciona como site estatico.
+        mostrarResultado(await PokerRunner.calcular(montarPayload()));
 
     } catch (e) {
-        // So cai aqui se a rede falhar ou o servidor estiver fora
-        mostrarMensagem('error-card', 'N\u00e3o foi poss\u00edvel falar com o servidor.');
+        // Sem rede no caminho, so cai aqui se o motor recusar a entrada
+        const api = e.apiError;
 
+        const detalhes = (api && api.details && api.details.length > 0)
+            ? api.details.join(' \u00b7 ')
+            : (api ? api.message : 'N\u00e3o foi poss\u00edvel concluir o c\u00e1lculo.');
+
+        mostrarMensagem('error-card', detalhes);
     } finally {
         // Roda sempre, inclusive nos returns acima
         botao.disabled = false;
